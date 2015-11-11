@@ -28,8 +28,7 @@ gcov_ignore=""
 ft_gcov="1"
 ft_coveragepy="1"
 ft_fix="1"
-_git_root=$(git rev-parse --show-toplevel || hg root || echo $PWD)
-git_root="$_git_root"
+git_root=$(git rev-parse --show-toplevel || hg root || echo "$PWD")
 if [ "$git_root" = "$PWD" ];
 then
   git_root="."
@@ -58,6 +57,7 @@ Upload reports to Codecov
                  ex. codecov -e VAR,VAR2
                  (or) set environment variable CODECOV_ENV=VAR,VAR2
     -X feature   Toggle functionalities, accepting: 'gcov', 'coveragepy', 'nocolor', 'fix'
+    -F root dir  Used when not in git/hg project to identify project root directory
 
     -- Override CI Environment Variables --
        These variables are automatically detected by popular CI providers
@@ -252,7 +252,6 @@ then
   say "${e}-->${x} slug set from env"
   slug_o="$CODECOV_SLUG"
 fi
-
 
 if [ "$JENKINS_URL" != "" ];
 then
@@ -597,7 +596,33 @@ then
 fi
 
 say "$e==>$x Detecting git/mercurial file structure"
-upload="$(cd "$git_root" && git ls-files || hg locate)
+network=$(cd "$git_root" && git ls-files || hg locate || echo "")
+if [ "$network" = "" ];
+then
+  network=$(find "$git_root" -type f \
+            -not -path '*/virtualenv/*' \
+            -not -path '*/.virtualenv/*' \
+            -not -path '*/virtualenvs/*' \
+            -not -path '*/.virtualenvs/*' \
+            -not -path '*/.env/*' \
+            -not -path '*/.envs/*' \
+            -not -path '*/env/*' \
+            -not -path '*/envs/*' \
+            -not -path '*/.venv/*' \
+            -not -path '*/.venvs/*' \
+            -not -path '*/venv/*' \
+            -not -path '*/venvs/*' \
+            -not -path '*/build/lib/*' \
+            -not -path '*/.git/*' \
+            -not -path '*/.egg-info/*' \
+            -not -path '*/shunit2-2.1.6/*' \
+            -not -path '*/vendor/*' \
+            -not -path '*/js/generated/coverage/*' \
+            -not -path '*/__pycache__/*' \
+            -not -path '*/node_modules/*' \
+            -not -path "*/$bower_components/*")
+fi
+upload="$network
 <<<<<< network"
 
 # Append Environment Variables
@@ -642,7 +667,7 @@ do
     say "  $g+$x $file ${e}bytes=${#report}${x}"
     # append to to upload
     upload="$upload
-# path=$(echo "$file" | sed "s|^$_git_root/||")
+# path=$(echo "$file" | sed "s|^$git_root/||")
 $report
 <<<<<< EOF"
   else
