@@ -127,7 +127,7 @@ swiftcov() {
 
 if [ $# != 0 ];
 then
-  while getopts "svdhu:t:f:r:e:g:p:X:x:a:b:C:B:P:D:S:" o
+  while getopts "svdhu:t:f:r:e:g:p:X:x:a:b:C:B:P:D:S:F:" o
   do
     case "$o" in
       "v")
@@ -147,6 +147,9 @@ then
         ;;
       "B")
         branch_o="$OPTARG"
+        ;;
+      "F")
+        git_root="$OPTARG"
         ;;
       "P")
         pr_o="$OPTARG"
