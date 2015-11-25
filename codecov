@@ -130,7 +130,8 @@ then
         then
           files="$OPTARG"
         else
-          files="$files $OPTARG"
+          files="$files
+$OPTARG"
         fi
         ;;
       "p")
@@ -551,17 +552,20 @@ do
   # escape file paths
   file=$(echo "$file" | sed -e 's/ /\\ /')
   # read the coverage file
-  if [ -f "$file" ];
+  if [ "$file" != "" ];
   then
-    report=$(cat "$file")
-    say "    + $file bytes=${#report}"
-    # append to to upload
-    upload="$upload
+    if [ -f "$file" ];
+    then
+      report=$(cat "$file")
+      say "    + $file bytes=${#report}"
+      # append to to upload
+      upload="$upload
 # path=$(echo "$file" | sed "s|^$_git_root/||")
 $report
 <<<<<< EOF"
-  else
-    say "    -> File not found at $file"
+    else
+      say "    -> File not found at $file"
+    fi
   fi
 done <<< "$(echo -e "$files")"
 
