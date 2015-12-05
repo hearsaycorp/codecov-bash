@@ -384,21 +384,23 @@ else
       find ~/Library/Developer/Xcode/DerivedData -name '*.gcda' -exec $gcov_exe $gcov_arg {} +
 
       # xcode 7 profdata
-      profdata=$(find ~/Library/Developer/Xcode/DerivedData -name 'Coverage.profdata' | head -1)
-      if [ -f "$profdata" ];
-      then
-        _dir=$(dirname "$profdata")
-        for _type in app framework xctest
-        do
-          _file=$(find "$_dir" -name "*.$_type" | head -1)
-          if [ "$_file" != "" ];
-          then
-            _proj=${_file##*/}
-            _proj=${_proj%."$_type"}
-            xcrun llvm-cov show -instr-profile "$profdata" "$_file/$_proj" > "$_type.coverage.txt" || true
-          fi
-        done
-      fi
+      while IFS='' read -r profdata;
+      do
+        if [ -f "$profdata" ];
+        then
+          _dir=$(dirname "$profdata")
+          for _type in app framework xctest
+          do
+            _file=$(find "$_dir" -name "*.$_type" | head -1)
+            if [ "$_file" != "" ];
+            then
+              _proj=${_file##*/}
+              _proj=${_proj%."$_type"}
+              xcrun llvm-cov show -instr-profile "$profdata" "$_file/$_proj" > "$_type.coverage.txt" || true
+            fi
+          done
+        fi
+      done <<< "$(find ~/Library/Developer/Xcode/DerivedData -name 'Coverage.profdata')"
 
     fi
 
